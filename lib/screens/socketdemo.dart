@@ -31,7 +31,7 @@ class _SocketDemoState extends State<SocketDemo> {
   }
 
   void connectAndListen() {
-    socket = IO.io('https://linebot.wetrustgps.com/api/test_socket',
+    socket = IO.io('http://192.168.1.158:5000',
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     socket.onConnect((_) {

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:gps_tracking_app/screens/commandpage.dart';
+import 'package:gps_tracking_app/screens/directionpage.dart';
 import 'package:gps_tracking_app/screens/infopage.dart';
+import 'package:gps_tracking_app/screens/otherpage.dart';
+import 'package:gps_tracking_app/screens/playbackpage.dart';
+import 'package:gps_tracking_app/screens/trackingpage.dart';
 
 late GoogleMapController mapController;
 const LatLng _center = LatLng(12.617595, 102.097028);
@@ -90,32 +95,46 @@ class _DisplayPageState extends State<DisplayPage> {
             shrinkWrap: true,
             children: <Widget>[
               const ListTile(
-                title: Text('Location Information'),
+                title: Text('Location latitude : 12.617595, Longitude : 102.097028', style: TextStyle(fontSize: 12),),
               ),
-              const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildTappableColumn(
-                      'assets/image/car_online.png', 'Information', () {
+                      'assets/image/car.png', 'Information', () {
                     Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => const InfoPage(),
                     ));
                   }),
                   _buildTappableColumn(
-                      'assets/image/car_online.png', 'Tracking', () {
+                      'assets/image/tracking.png', 'Tracking', () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const TrackingPage(),
+                    ));
                   }),
                   _buildTappableColumn(
-                      'assets/image/car_online.png', 'Playback', () {
+                      'assets/image/direction.png', 'Playback', () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const PlaybackPage(),
+                    ));
                   }),
-                  _buildTappableColumn('assets/image/car_online.png', 'Command',
+                  _buildTappableColumn('assets/image/command-line.png', 'Command',
                       () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const CommandPage(),
+                    ));
                   }),
                   _buildTappableColumn(
-                      'assets/image/car_online.png', 'Direction', () {
+                      'assets/image/direction-sign.png', 'Direction', () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const DirectionPage(),
+                    ));
                   }),
-                  _buildTappableColumn('assets/image/car_online.png', 'Other',
+                  _buildTappableColumn('assets/image/categories.png', 'Other',
                       () {
+                    Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const OtherPage(),
+                    ));
                   }),
                 ],
               ),
@@ -149,7 +168,7 @@ class _DisplayPageState extends State<DisplayPage> {
           const SizedBox(height: 5),
           Text(
             label,
-            style: const TextStyle(fontSize: 10),
+            style: const TextStyle(fontSize: 12),
             textAlign: TextAlign.center,
           ),
         ],
