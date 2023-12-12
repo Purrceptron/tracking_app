@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:gps_tracking_app/model/stream_socket.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 
 class SocketDemo extends StatefulWidget {
   const SocketDemo({super.key});
@@ -31,8 +32,14 @@ class _SocketDemoState extends State<SocketDemo> {
   }
 
   void connectAndListen() {
-    socket = IO.io('http://192.168.1.158:5000',
+    socket = IO.io('https://linebot.wetrustgps.com/api/test_socket',
         IO.OptionBuilder().setTransports(['websocket']).build());
+
+    try {
+      socket.connect();
+    } catch (error) {
+      print('Error connecting to server: $error');
+    }
 
     socket.onConnect((_) {
       print('----------------------------------------------------');
@@ -40,16 +47,19 @@ class _SocketDemoState extends State<SocketDemo> {
       print('----------------------------------------------------');
     });
 
-    socket.on('event', (data) {
+    socket.on('test_socket', (data) {
       lastMessage = 'Previous message : $data';
       streamSocket.addResponse(data);
+      print('Message from server : $data');
     });
 
+    /*
     socket.on('terminalInput', (rdata) {
       retrivedMessage = 'Retrieved message : $rdata';
       streamSocket.addResponse(rdata);
       print('Input from terminal : $rdata');
     });
+    */
 
     socket.onDisconnect((_) {
       disconnectCounter++;
@@ -71,11 +81,31 @@ class _SocketDemoState extends State<SocketDemo> {
       print('Location permission not granted');
       return;
     }
+
     Position position = await Geolocator.getCurrentPosition();
+
     socket.emit('location', {
       'latitude': position.latitude,
       'longitude': position.longitude,
     });
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://linebot.wetrustgps.com/api/test_socket'),
+        body: {
+          'latitude': position.latitude.toString(),
+          'longitude': position.longitude.toString(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        print('API call successful: ${response.body}');
+      } else {
+        print('API call failed with status code: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error making API call: $error');
+    }
   }
 
   @override
