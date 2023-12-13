@@ -7,99 +7,87 @@ class DevicePage extends StatefulWidget {
   State<DevicePage> createState() => _DevicePageState();
 }
 
+List<String> titles = <String>[
+  'Total',
+  'Online',
+  'Offline',
+];
+
 class _DevicePageState extends State<DevicePage> {
-  int _selectedAppBarIndex = 0;
-
-  void _onAppBarTap(int index) {
-    setState(() {
-      _selectedAppBarIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          AppBar(
-            title: const Text(
-              'Device',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.black,
+    const int tabsCount = 3;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
+    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
+
+    return DefaultTabController(
+      initialIndex: 1,
+      length: tabsCount,
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text(
+            'Device',
+            style: TextStyle(color: Colors.white),
           ),
-          AppBar(
-            centerTitle: true,
-            title: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  InkWell(
-                    onTap: () => _onAppBarTap(0),
-                    child: const Text('Total',
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
-                  ),
-                  InkWell(
-                    onTap: () => _onAppBarTap(1),
-                    child: const Text('Online',
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
-                  ),
-                  InkWell(
-                    onTap: () => _onAppBarTap(2),
-                    child: const Text('Offline',
-                        style: TextStyle(color: Colors.white, fontSize: 20)),
-                  ),
-                ],
+          notificationPredicate: (ScrollNotification notification) {
+            return notification.depth == 1;
+          },
+          backgroundColor: Colors.black,
+          scrolledUnderElevation: 4.0,
+          bottom: TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white70,
+            tabs: <Widget>[
+              Tab(
+                icon: const Icon(Icons.gps_fixed_rounded),
+                text: titles[0],
               ),
+              Tab(
+                icon: const Icon(Icons.gps_not_fixed_rounded),
+                text: titles[1],
+              ),
+              Tab(
+                icon: const Icon(Icons.gps_off_rounded),
+                text: titles[2],
+              ),
+            ],
+          ),
+        ),
+        body: TabBarView(
+          children: <Widget>[
+            ListView.builder(
+              itemCount: 15,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
+                  title: Text('${titles[0]} $index'),
+                );
+              },
             ),
-            backgroundColor: Colors.black87,
-            toolbarHeight: 40,
-          ),
-          Expanded(
-            child: _buildListView(),
-          ),
-        ],
+            ListView.builder(
+              itemCount: 12,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
+                  title: Text('${titles[1]} $index'),
+                );
+              },
+            ),
+            ListView.builder(
+              itemCount: 3,
+              itemBuilder: (BuildContext context, int index) {
+                return ListTile(
+                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
+                  title: Text('${titles[2]} $index'),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
-  }
-
-  Widget _buildListView() {
-    switch (_selectedAppBarIndex) {
-      case 0:
-        return ListView(
-          children: const [
-            ListTile(
-              title: Text('Total Information 1'),
-            ),
-            ListTile(
-              title: Text('Total Information 2'),
-            ),
-          ],
-        );
-      case 1:
-        return ListView(
-          children: const [
-            ListTile(
-              title: Text('Online Information 1'),
-            ),
-            ListTile(
-              title: Text('Online Information 2'),
-            ),
-          ],
-        );
-      case 2:
-        return ListView(
-          children: const [
-            ListTile(
-              title: Text('Offline Information 1'),
-            ),
-            ListTile(
-              title: Text('Offline Information 2'),
-            ),
-          ],
-        );
-      default:
-        return Container();
-    }
   }
 }

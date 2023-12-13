@@ -125,7 +125,7 @@ class _DisplayPageState extends State<DisplayPage> {
 
       setState(() {
         appBarTitle =
-            'Latitude: ${position.latitude}, Longitude: ${position.longitude}';
+            'Latitude : ${position.latitude}, Longitude : ${position.longitude}';
       });
     } catch (e) {
       print('Error getting location: $e');
