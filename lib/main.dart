@@ -3,7 +3,7 @@ import 'package:gps_tracking_app/screens/displaypage.dart';
 import 'package:gps_tracking_app/screens/devicepage.dart';
 import 'package:gps_tracking_app/screens/notificationpage.dart';
 import 'package:gps_tracking_app/screens/settingpage.dart';
-import 'package:gps_tracking_app/screens/socketdemo.dart';
+//import 'package:gps_tracking_app/screens/socketdemo.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,7 +41,7 @@ class _MainState extends State<Main> {
     const DevicePage(),
     const NotificationPage(),
     const SettingPage(),
-    const SocketDemo(),
+    //const SocketDemo(),
   ];
 
   @override
@@ -76,10 +76,6 @@ class _MainState extends State<Main> {
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: 'Setting',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.connect_without_contact),
-            label: 'Socket Demo',
           ),
         ],
       ),

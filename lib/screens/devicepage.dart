@@ -53,7 +53,7 @@ class _DevicePageState extends State<DevicePage> {
               ),
             ),
             backgroundColor: Colors.black87,
-            toolbarHeight: 30,
+            toolbarHeight: 40,
           ),
           Expanded(
             child: _buildListView(),
