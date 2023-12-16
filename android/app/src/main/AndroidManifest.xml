@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">z
     <application
+        android:usesCleartextTraffic="true"
         android:label="gps_tracking_app"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
@@ -33,6 +34,7 @@
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDBZV714cFFkSJwYHQbWY-6FBEa5OpMznE"/>
     </application>
+    
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

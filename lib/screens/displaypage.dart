@@ -53,19 +53,36 @@ class _DisplayPageState extends State<DisplayPage> {
   }
 
   void connectAndListen() {
-    socket = IO.io('https://linebot.wetrustgps.com/api/test_socket',
+    socket = IO.io('https://linebot.wetrustgps.com',
         IO.OptionBuilder().setTransports(['websocket']).build());
 
     try {
       socket.connect();
     } catch (error) {
+      print('----------------------------------------------------');
       print('Error connecting to server: $error');
+      print('----------------------------------------------------');
     }
+    socket.on('connect_error', (error) {
+      print('----------------------------------------------------');
+      print('Connection Error: $error');
+    });
+    socket.on('connect_timeout', (_) {
+      print('----------------------------------------------------');
+      print('Connection Timeout');
+    });
 
     socket.onConnect((_) {
       print('----------------------------------------------------');
       print('server connected');
       print('----------------------------------------------------');
+    });
+
+    socket.on('wox_webhook', (data) {
+      var uid = data['user_id'];
+      var lat = data['latitude'];
+      var lng = data['longitude'];
+      print('Received wox_webhook data: $data');
     });
 
     socket.onDisconnect((_) {
@@ -248,7 +265,7 @@ class _DisplayPageState extends State<DisplayPage> {
       'longitude': position.longitude,
     });
 
-    try {
+    /*try {
       final response = await http.post(
         Uri.parse('https://linebot.wetrustgps.com/api/test_socket'),
         body: {
@@ -265,7 +282,7 @@ class _DisplayPageState extends State<DisplayPage> {
     } catch (error) {
       print('Error making API call: $error');
     }
-    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
+    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');*/
     return position;
   }
 
