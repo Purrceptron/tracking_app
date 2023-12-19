@@ -11,7 +11,7 @@ import 'package:gps_tracking_app/screens/otherpage.dart';
 import 'package:gps_tracking_app/screens/playbackpage.dart';
 import 'package:gps_tracking_app/screens/trackingpage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-import 'package:http/http.dart' as http;
+//import 'package:http/http.dart' as http;
 
 class DisplayPage extends StatefulWidget {
   const DisplayPage({super.key});
@@ -79,9 +79,6 @@ class _DisplayPageState extends State<DisplayPage> {
     });
 
     socket.on('wox_webhook', (data) {
-      var uid = data['user_id'];
-      var lat = data['latitude'];
-      var lng = data['longitude'];
       print('Received wox_webhook data: $data');
     });
 

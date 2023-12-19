@@ -1,4 +1,6 @@
+// ignore_for_file: library_prefixes, avoid_print
 import 'package:flutter/material.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class DevicePage extends StatefulWidget {
   const DevicePage({super.key});
@@ -14,12 +16,38 @@ List<String> titles = <String>[
 ];
 
 class _DevicePageState extends State<DevicePage> {
+  late IO.Socket socket;
+  List<Map<String, dynamic>> dataList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    connectAndListen();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  void connectAndListen() {
+    socket = IO.io('https://linebot.wetrustgps.com',
+        IO.OptionBuilder().setTransports(['websocket']).build());
+
+    socket.connect();
+
+    socket.on('wox_webhook', (webhookData) {
+      setState(() {
+        dataList.add(Map<String, dynamic>.from(webhookData));
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     const int tabsCount = 3;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
-    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
 
     return DefaultTabController(
       initialIndex: 1,
@@ -59,11 +87,30 @@ class _DevicePageState extends State<DevicePage> {
         body: TabBarView(
           children: <Widget>[
             ListView.builder(
-              itemCount: 15,
+              itemCount: dataList.length,
               itemBuilder: (BuildContext context, int index) {
+                Map<String, dynamic> webhookData = dataList[index];
+                String userId = webhookData['user_id'].toString();
+                String email = webhookData['user']['email'].toString();
+                String latitude = webhookData['latitude'].toString();
+                String longitude = webhookData['longitude'].toString();
+                String speed = webhookData['speed'].toString();
+                String dataTime = webhookData['time'].toString();
+                String address = webhookData['address'].toString();
                 return ListTile(
+                  textColor: Colors.black,
+                  titleTextStyle: const TextStyle(fontSize: 12.0),
+                  subtitleTextStyle: const TextStyle(fontSize: 12.0),
                   tileColor: index.isOdd ? oddItemColor : Colors.black26,
-                  title: Text('${titles[0]} $index'),
+                  title: Text('User ID: $userId Email: $email'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Latitude: $latitude Longitude: $longitude'),
+                      Text('Speed: $speed Time: $dataTime'),
+                      Text('Address: $address'),
+                    ],
+                  ),
                 );
               },
             ),
