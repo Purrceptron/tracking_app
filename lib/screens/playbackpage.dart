@@ -8,8 +8,8 @@ class PlaybackPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Playback',
-          style: TextStyle(color: Colors.white),
+          'เล่นย้อนหลัง',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(

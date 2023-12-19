@@ -8,13 +8,23 @@ class NotificationPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Notification',
-          style: TextStyle(color: Colors.white),
+          'การแจ้งเตือน',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'BaiJamjuree',
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: Colors.black,
       ),
       body: const Center(
-        child: Text('No notification'),
+        child: Text(
+          'ไม่มีการแจ้งเตือน',
+          style: TextStyle(
+            fontFamily: 'BaiJamjuree',
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ),
     );
   }

@@ -8,8 +8,8 @@ class DirectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Direction',
-          style: TextStyle(color: Colors.white),
+          'ระบบนำทาง',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(

@@ -96,7 +96,12 @@ class _DisplayPageState extends State<DisplayPage> {
       appBar: AppBar(
         title: Text(
           appBarTitle,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontFamily: 'BaiJamjuree',
+            fontWeight: FontWeight.w500,
+          ),
         ),
         backgroundColor: Colors.black,
       ),
@@ -139,7 +144,7 @@ class _DisplayPageState extends State<DisplayPage> {
 
       setState(() {
         appBarTitle =
-            'Latitude : ${position.latitude}, Longitude : ${position.longitude}';
+            'ละติจูด : ${position.latitude}, ลองจิจูด : ${position.longitude}';
       });
     } catch (e) {
       print('Error getting location: $e');
@@ -162,43 +167,49 @@ class _DisplayPageState extends State<DisplayPage> {
               children: [
                 Center(
                   child: Text(
-                      'Latitude: ${position.latitude}, Longitude: ${position.longitude}'),
+                    'ละติจูด : ${position.latitude}, ลองจิจูด : ${position.longitude}',
+                    style: const TextStyle(
+                      fontFamily: 'BaiJamjuree',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 4.0),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildIconButtonColumn(
-                        'Information', Icons.car_crash_rounded, () {
+                        'รายละเอียด', Icons.car_crash_rounded, () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => const InfoPage(),
                       ));
                     }),
                     _buildIconButtonColumn(
-                        'Tracking', Icons.track_changes_rounded, () {
+                        'การติดตาม', Icons.track_changes_rounded, () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => const TrackingPage(),
                       ));
                     }),
                     _buildIconButtonColumn(
-                        'Playback', Icons.settings_backup_restore_rounded, () {
+                        'เล่นย้อนหลัง', Icons.settings_backup_restore_rounded,
+                        () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => const PlaybackPage(),
                       ));
                     }),
                     _buildIconButtonColumn(
-                        'Command', Icons.keyboard_command_key_rounded, () {
+                        'คำสั่ง', Icons.keyboard_command_key_rounded, () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => const CommandPage(),
                       ));
                     }),
                     _buildIconButtonColumn(
-                        'Direction', Icons.directions_car_filled_rounded, () {
+                        'ระบบนำทาง', Icons.directions_car_filled_rounded, () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => const DirectionPage(),
                       ));
                     }),
-                    _buildIconButtonColumn('Other', Icons.streetview_rounded,
+                    _buildIconButtonColumn('อื่น ๆ', Icons.streetview_rounded,
                         () {
                       Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => const OtherPage(),
@@ -226,7 +237,11 @@ class _DisplayPageState extends State<DisplayPage> {
         const SizedBox(height: 4.0),
         Text(
           text,
-          style: const TextStyle(fontSize: 11.0),
+          style: const TextStyle(
+            fontSize: 11.0,
+            fontFamily: 'BaiJamjuree',
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );

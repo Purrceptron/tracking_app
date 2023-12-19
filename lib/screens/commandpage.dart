@@ -8,8 +8,8 @@ class CommandPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Command',
-          style: TextStyle(color: Colors.white),
+          'คำสั่ง',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(

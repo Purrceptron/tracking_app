@@ -59,23 +59,27 @@ class _MainState extends State<Main> {
         backgroundColor: Colors.black,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
+        selectedLabelStyle: const TextStyle(
+            fontFamily: 'BaiJamjuree', fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(
+            fontFamily: 'BaiJamjuree', fontWeight: FontWeight.w500),
         iconSize: 30,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.map),
-            label: 'Display',
+            label: 'แสดงผล',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.devices),
-            label: 'Device',
+            label: 'อุปกรณ์',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications),
-            label: 'Notification',
+            label: 'การแจ้งเตือน',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: 'Setting',
+            label: 'ตั้งค่า',
           ),
         ],
       ),

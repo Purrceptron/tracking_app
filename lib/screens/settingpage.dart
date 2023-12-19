@@ -8,8 +8,12 @@ class SettingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Setting',
-          style: TextStyle(color: Colors.white),
+          'ตั้งค่า',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'BaiJamjuree',
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: Colors.black,
       ),

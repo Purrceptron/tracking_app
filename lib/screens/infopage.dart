@@ -8,8 +8,8 @@ class InfoPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Info',
-          style: TextStyle(color: Colors.white),
+          'รายละเอียด',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(

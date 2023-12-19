@@ -8,8 +8,8 @@ class TrackingPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Tracking',
-          style: TextStyle(color: Colors.white),
+          'การติดตาม',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(

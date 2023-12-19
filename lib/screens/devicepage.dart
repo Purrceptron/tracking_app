@@ -1,4 +1,3 @@
-// ignore_for_file: library_prefixes, avoid_print
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -8,12 +7,6 @@ class DevicePage extends StatefulWidget {
   @override
   State<DevicePage> createState() => _DevicePageState();
 }
-
-List<String> titles = <String>[
-  'Total',
-  'Online',
-  'Offline',
-];
 
 class _DevicePageState extends State<DevicePage> {
   late IO.Socket socket;
@@ -27,6 +20,7 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   void dispose() {
+    socket.disconnect();
     super.dispose();
   }
 
@@ -49,6 +43,20 @@ class _DevicePageState extends State<DevicePage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
 
+    bool isEngineOff = dataList.any(
+      (webhookData) =>
+          webhookData['name'].toString() == 'ดับเครื่องยนต์' ||
+          webhookData['name'].toString() == 'Idle duration longer than' ||
+          webhookData['name'].toString() == 'ดับเครื่อง',
+    );
+
+    List<Map<String, dynamic>> engineOffData = dataList
+        .where((webhookData) =>
+            webhookData['name'].toString() == 'ดับเครื่องยนต์' ||
+            webhookData['name'].toString() == 'Idle duration longer than' ||
+            webhookData['name'].toString() == 'ดับเครื่อง')
+        .toList();
+
     return DefaultTabController(
       initialIndex: 1,
       length: tabsCount,
@@ -56,30 +64,38 @@ class _DevicePageState extends State<DevicePage> {
         appBar: AppBar(
           centerTitle: true,
           title: const Text(
-            'Device',
-            style: TextStyle(color: Colors.white),
+            'อุปกรณ์',
+            style: TextStyle(
+              color: Colors.white,
+              fontFamily: 'BaiJamjuree',
+              fontWeight: FontWeight.w600,
+            ),
           ),
           notificationPredicate: (ScrollNotification notification) {
             return notification.depth == 1;
           },
           backgroundColor: Colors.black,
           scrolledUnderElevation: 4.0,
-          bottom: TabBar(
+          bottom: const TabBar(
+            labelStyle: TextStyle(
+              fontFamily: 'BaiJamjuree',
+              fontWeight: FontWeight.w600,
+            ),
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
             indicatorColor: Colors.white70,
             tabs: <Widget>[
               Tab(
-                icon: const Icon(Icons.gps_fixed_rounded),
-                text: titles[0],
+                icon: Icon(Icons.gps_fixed_rounded),
+                text: 'ทั้งหมด',
               ),
               Tab(
-                icon: const Icon(Icons.gps_not_fixed_rounded),
-                text: titles[1],
+                icon: Icon(Icons.gps_not_fixed_rounded),
+                text: 'ออนไลน์',
               ),
               Tab(
-                icon: const Icon(Icons.gps_off_rounded),
-                text: titles[2],
+                icon: Icon(Icons.gps_off_rounded),
+                text: 'ออฟไลน์',
               ),
             ],
           ),
@@ -90,48 +106,92 @@ class _DevicePageState extends State<DevicePage> {
               itemCount: dataList.length,
               itemBuilder: (BuildContext context, int index) {
                 Map<String, dynamic> webhookData = dataList[index];
-                String userId = webhookData['user_id'].toString();
-                String email = webhookData['user']['email'].toString();
-                String latitude = webhookData['latitude'].toString();
-                String longitude = webhookData['longitude'].toString();
-                String speed = webhookData['speed'].toString();
-                String dataTime = webhookData['time'].toString();
-                String address = webhookData['address'].toString();
+                String carId = webhookData['device']['name'].toString();
+                String carStatus = webhookData['name'].toString();
+                String timeStatus = webhookData['detail']?.toString() ?? '';
+
                 return ListTile(
-                  textColor: Colors.black,
-                  titleTextStyle: const TextStyle(fontSize: 12.0),
-                  subtitleTextStyle: const TextStyle(fontSize: 12.0),
+                  leading: const Icon(
+                    Icons.car_repair_rounded,
+                    size: 40.0,
+                  ),
                   tileColor: index.isOdd ? oddItemColor : Colors.black26,
-                  title: Text('User ID: $userId Email: $email'),
+                  title: Text(
+                    'ทะเบียน : $carId',
+                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Latitude: $latitude Longitude: $longitude'),
-                      Text('Speed: $speed Time: $dataTime'),
-                      Text('Address: $address'),
+                      Text(
+                        'สถานะของรถ : $carStatus $timeStatus',
+                        style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                      ),
                     ],
                   ),
                 );
               },
             ),
             ListView.builder(
-              itemCount: 12,
+              itemCount: dataList.length,
               itemBuilder: (BuildContext context, int index) {
+                Map<String, dynamic> webhookData = dataList[index];
+                String carId = webhookData['device']['name'].toString();
+                String carStatus = webhookData['name'].toString();
+                String timeStatus = webhookData['detail']?.toString() ?? '';
+
+                if (carStatus == 'ดับเครื่องยนต์' ||
+                    carStatus == 'Idle duration longer than' ||
+                    carStatus == 'ดับเครื่อง') {
+                  return const SizedBox.shrink();
+                }
+
                 return ListTile(
                   tileColor: index.isOdd ? oddItemColor : Colors.black26,
-                  title: Text('${titles[1]} $index'),
+                  title: Text(
+                    'ทะเบียน : $carId',
+                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                  ),
+                  subtitle: Text(
+                    'สถานะของรถ : $carStatus $timeStatus',
+                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                  ),
                 );
               },
             ),
-            ListView.builder(
-              itemCount: 3,
-              itemBuilder: (BuildContext context, int index) {
-                return ListTile(
-                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
-                  title: Text('${titles[2]} $index'),
-                );
-              },
-            ),
+            if (isEngineOff)
+              ListView.builder(
+                itemCount: engineOffData.length,
+                itemBuilder: (BuildContext context, int index) {
+                  Map<String, dynamic> webhookData = engineOffData[index];
+                  String carId = webhookData['device']['name'].toString();
+                  String carStatus = webhookData['name'].toString();
+                  String timeStatus = webhookData['detail']?.toString() ?? '';
+
+                  return ListTile(
+                    leading: const Icon(
+                      Icons.car_repair_rounded,
+                      size: 40.0,
+                    ),
+                    tileColor: index.isOdd ? oddItemColor : Colors.black26,
+                    title: Text(
+                      'ทะเบียน : $carId',
+                      style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'สถานะของรถ : $carStatus $timeStatus',
+                          style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              )
+            else
+              const SizedBox.shrink(),
           ],
         ),
       ),

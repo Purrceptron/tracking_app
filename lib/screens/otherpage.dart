@@ -8,8 +8,8 @@ class OtherPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Other',
-          style: TextStyle(color: Colors.white),
+          'อื่น ๆ',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(
