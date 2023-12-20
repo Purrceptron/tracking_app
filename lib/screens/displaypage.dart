@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
+//import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gps_tracking_app/screens/commandpage.dart';
 import 'package:gps_tracking_app/screens/directionpage.dart';
@@ -26,24 +26,27 @@ class _DisplayPageState extends State<DisplayPage> {
   int disconnectCounter = 0;
 
   static const CameraPosition initialCameraPosition = CameraPosition(
-    target: LatLng(37.42796133580664, -122.085749655962),
-    zoom: 14,
+    target: LatLng(13.7500, 101.5000),
+    zoom: 6,
   );
 
   Set<Marker> markers = {};
+  Map<String, Marker> carIdToMarkerMap = {};
   String appBarTitle = 'Display';
   late Timer locationUpdateTimer;
+  Map<String, dynamic> tappedMarkerData = {};
 
   @override
   void initState() {
     super.initState();
-    _getLocationAndSetMarker();
     connectAndListen();
 
+    /*
     locationUpdateTimer =
         Timer.periodic(const Duration(seconds: 10), (Timer timer) {
       _sendLocationUpdate();
     });
+    */
   }
 
   @override
@@ -82,11 +85,15 @@ class _DisplayPageState extends State<DisplayPage> {
       print('Received wox_webhook data: $data');
     });
 
-    socket.onDisconnect((_) {
-      disconnectCounter++;
-      if (disconnectCounter == 1) {
-        print('disconnect');
-      }
+    socket.on('wox_webhook', (data) {
+      print('Received wox_webhook data: $data');
+      String carId = data['device']['name'];
+      double latitude = data['latitude'];
+      double longitude = data['longitude'];
+      String imei = data['device']['imei'];
+      String carStatus = data['name'];
+
+      _getLocationAndSetMarker(carId, latitude, longitude, imei, carStatus);
     });
   }
 
@@ -116,42 +123,75 @@ class _DisplayPageState extends State<DisplayPage> {
     );
   }
 
-  void _getLocationAndSetMarker() async {
-    try {
-      Position position = await _determinePosition();
+  Future<BitmapDescriptor> _getMarkerIcon(String carStatus) async {
+    String imagePath;
 
-      googleMapController.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(position.latitude, position.longitude),
-            zoom: 14,
-          ),
-        ),
-      );
-
-      markers.clear();
-
-      markers.add(
-        Marker(
-          markerId: const MarkerId('currentLocation'),
-          position: LatLng(position.latitude, position.longitude),
-          icon: await _getMarkerIcon(),
-          onTap: () {
-            _showBottomSheet(position);
-          },
-        ),
-      );
-
-      setState(() {
-        appBarTitle =
-            'ละติจูด : ${position.latitude}, ลองจิจูด : ${position.longitude}';
-      });
-    } catch (e) {
-      print('Error getting location: $e');
+    //check if car status not online or idle for marker image
+    if (carStatus == 'ดับเครื่อง' ||
+        carStatus == 'ดับเครื่องยนต์' ||
+        carStatus == 'Stop duration longer than' ||
+        carStatus == 'Offline duration longer than') {
+      imagePath = 'assets/image/กระบะบรรทุก STOP.png';
+    } else if (carStatus == 'Idle duration longer than') {
+      imagePath = 'assets/image/กระบะบรรทุก IDLE.png';
+    } else {
+      imagePath = 'assets/image/กระบะบรรทุก RUN.png';
     }
+
+    ByteData byteData = await rootBundle.load(imagePath);
+    Uint8List byteList = byteData.buffer.asUint8List();
+
+    return BitmapDescriptor.fromBytes(byteList);
   }
 
-  void _showBottomSheet(Position position) {
+  void _getLocationAndSetMarker(String carId, double latitude, double longitude,
+      String imei, String carStatus) async {
+    if (carIdToMarkerMap.containsKey(carId)) {
+      //update marker if already have
+      Marker existingMarker = carIdToMarkerMap[carId]!;
+      markers.remove(existingMarker);
+
+      Marker updatedMarker = existingMarker.copyWith(
+        positionParam: LatLng(latitude, longitude),
+      );
+
+      markers.add(updatedMarker);
+      carIdToMarkerMap[carId] = updatedMarker;
+    } else {
+      //create new marker based on lat long from webhook
+      Marker newMarker = Marker(
+        markerId: MarkerId(carId),
+        position: LatLng(latitude, longitude),
+        icon: await _getMarkerIcon(carStatus),
+        onTap: () {
+          _onMarkerTapped(carId, latitude, longitude, imei);
+        },
+      );
+
+      markers.add(newMarker);
+      carIdToMarkerMap[carId] = newMarker;
+    }
+
+    setState(() {
+      appBarTitle = 'ละติจูด : $latitude, ลองจิจูด : $longitude';
+    });
+  }
+
+  void _onMarkerTapped(
+      String carId, double latitude, double longitude, String imei) {
+    tappedMarkerData = {
+      'carId': carId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'imei': imei
+      //another data
+    };
+
+    _showBottomSheet(carId, latitude, longitude, imei);
+  }
+
+  void _showBottomSheet(
+      String carId, double latitude, double longitude, String imei) {
     showModalBottomSheet(
       backgroundColor: Colors.white,
       context: context,
@@ -167,10 +207,11 @@ class _DisplayPageState extends State<DisplayPage> {
               children: [
                 Center(
                   child: Text(
-                    'ละติจูด : ${position.latitude}, ลองจิจูด : ${position.longitude}',
+                    'IMEI : $imei ทะเบียนรถ : $carId',
                     style: const TextStyle(
                       fontFamily: 'BaiJamjuree',
                       fontWeight: FontWeight.w500,
+                      fontSize: 12.0,
                     ),
                   ),
                 ),
@@ -247,6 +288,7 @@ class _DisplayPageState extends State<DisplayPage> {
     );
   }
 
+  /*
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -277,7 +319,8 @@ class _DisplayPageState extends State<DisplayPage> {
       'longitude': position.longitude,
     });
 
-    /*try {
+    /*
+    try {
       final response = await http.post(
         Uri.parse('https://linebot.wetrustgps.com/api/test_socket'),
         body: {
@@ -294,18 +337,24 @@ class _DisplayPageState extends State<DisplayPage> {
     } catch (error) {
       print('Error making API call: $error');
     }
-    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');*/
+    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
+    */
+
     return position;
   }
+  */
 
+  /*
   Future<BitmapDescriptor> _getMarkerIcon() async {
-    String imagePath = 'assets/image/car_online3.png';
+    String imagePath = 'assets/image/car_online2.png';
     ByteData byteData = await rootBundle.load(imagePath);
     Uint8List byteList = byteData.buffer.asUint8List();
 
     return BitmapDescriptor.fromBytes(byteList);
   }
+  */
 
+  /*
   void _sendLocationUpdate() async {
     try {
       Position position = await _determinePosition();
@@ -315,4 +364,5 @@ class _DisplayPageState extends State<DisplayPage> {
       print('Error sending location update: $e');
     }
   }
+  */
 }

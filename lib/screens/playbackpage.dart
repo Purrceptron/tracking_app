@@ -9,7 +9,10 @@ class PlaybackPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'เล่นย้อนหลัง',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'BaiJamjuree'),
         ),
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(

@@ -56,8 +56,8 @@ class _DevicePageState extends State<DevicePage> {
     return dataList
         .where((webhookData) =>
             webhookData['name'].toString() != 'ดับเครื่องยนต์' &&
-            webhookData['name'].toString() != 'Idle duration longer than' &&
             webhookData['name'].toString() != 'Offline duration longer than' &&
+            webhookData['name'].toString() != 'Stop duration longer than' &&
             webhookData['name'].toString() != 'ดับเครื่อง')
         .toList();
   }
@@ -66,8 +66,8 @@ class _DevicePageState extends State<DevicePage> {
     return dataList
         .where((webhookData) =>
             webhookData['name'].toString() == 'ดับเครื่องยนต์' ||
-            webhookData['name'].toString() == 'Idle duration longer than' ||
             webhookData['name'].toString() == 'Offline duration longer than' ||
+            webhookData['name'].toString() == 'Stop duration longer than' ||
             webhookData['name'].toString() == 'ดับเครื่อง')
         .toList();
   }
@@ -142,15 +142,6 @@ class _DevicePageState extends State<DevicePage> {
                     Icons.car_repair_rounded,
                     size: 40.0,
                   ),
-
-                  /* Old color
-                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
-                  title: Text(
-                    'ทะเบียน : $carId',
-                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
-                  ),
-                  */
-
                   //test if data update, change listTile color
                   tileColor: isUpdated
                       ? Colors.yellow
@@ -190,7 +181,8 @@ class _DevicePageState extends State<DevicePage> {
                 String lng = webhookData['longitude'].toString();
 
                 if (carStatus == 'ดับเครื่องยนต์' ||
-                    carStatus == 'Idle duration longer than' ||
+                    carStatus == 'Stop duration longer than' ||
+                    carStatus == 'Offline duration longer than' ||
                     carStatus == 'ดับเครื่อง') {
                   return const SizedBox.shrink();
                 }
