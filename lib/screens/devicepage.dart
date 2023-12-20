@@ -32,9 +32,44 @@ class _DevicePageState extends State<DevicePage> {
 
     socket.on('wox_webhook', (webhookData) {
       setState(() {
-        dataList.add(Map<String, dynamic>.from(webhookData));
+        // Check if the data already have
+        int existingIndex = dataList.indexWhere((data) =>
+            data['device']['name'] == webhookData['device']['name'] &&
+            data['name'] == webhookData['name'] &&
+            data['detail'] == webhookData['detail']);
+
+        if (existingIndex != -1) {
+          // If already have data, update it
+          dataList[existingIndex] = Map<String, dynamic>.from(webhookData);
+
+          //test
+          dataList[existingIndex]['isUpdated'] = true;
+        } else {
+          // If don't have data, add it to the list
+          dataList.add(Map<String, dynamic>.from(webhookData));
+        }
       });
     });
+  }
+
+  List<Map<String, dynamic>> getFilteredDataList() {
+    return dataList
+        .where((webhookData) =>
+            webhookData['name'].toString() != 'ดับเครื่องยนต์' &&
+            webhookData['name'].toString() != 'Idle duration longer than' &&
+            webhookData['name'].toString() != 'Offline duration longer than' &&
+            webhookData['name'].toString() != 'ดับเครื่อง')
+        .toList();
+  }
+
+  List<Map<String, dynamic>> getEngineOffDataList() {
+    return dataList
+        .where((webhookData) =>
+            webhookData['name'].toString() == 'ดับเครื่องยนต์' ||
+            webhookData['name'].toString() == 'Idle duration longer than' ||
+            webhookData['name'].toString() == 'Offline duration longer than' ||
+            webhookData['name'].toString() == 'ดับเครื่อง')
+        .toList();
   }
 
   @override
@@ -43,19 +78,7 @@ class _DevicePageState extends State<DevicePage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
 
-    bool isEngineOff = dataList.any(
-      (webhookData) =>
-          webhookData['name'].toString() == 'ดับเครื่องยนต์' ||
-          webhookData['name'].toString() == 'Idle duration longer than' ||
-          webhookData['name'].toString() == 'ดับเครื่อง',
-    );
-
-    List<Map<String, dynamic>> engineOffData = dataList
-        .where((webhookData) =>
-            webhookData['name'].toString() == 'ดับเครื่องยนต์' ||
-            webhookData['name'].toString() == 'Idle duration longer than' ||
-            webhookData['name'].toString() == 'ดับเครื่อง')
-        .toList();
+    bool isEngineOff = getEngineOffDataList().isNotEmpty;
 
     return DefaultTabController(
       initialIndex: 1,
@@ -109,6 +132,68 @@ class _DevicePageState extends State<DevicePage> {
                 String carId = webhookData['device']['name'].toString();
                 String carStatus = webhookData['name'].toString();
                 String timeStatus = webhookData['detail']?.toString() ?? '';
+                String lat = webhookData['latitude'].toString();
+                String lng = webhookData['longitude'].toString();
+                //test update
+                bool isUpdated = webhookData['isUpdated'] ?? false;
+
+                return ListTile(
+                  leading: const Icon(
+                    Icons.car_repair_rounded,
+                    size: 40.0,
+                  ),
+
+                  /* Old color
+                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
+                  title: Text(
+                    'ทะเบียน : $carId',
+                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                  ),
+                  */
+
+                  //test if data update, change listTile color
+                  tileColor: isUpdated
+                      ? Colors.yellow
+                      : index.isOdd
+                          ? oddItemColor
+                          : Colors.black26,
+                  title: Text(
+                    'ทะเบียน : $carId',
+                    style: const TextStyle(
+                      fontFamily: 'BaiJamjuree',
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'สถานะของรถ : $carStatus $timeStatus',
+                        style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                      ),
+                      Text(
+                        'ละติจูด $lat ลองจิจูด $lng',
+                        style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            ListView.builder(
+              itemCount: getFilteredDataList().length,
+              itemBuilder: (BuildContext context, int index) {
+                Map<String, dynamic> webhookData = getFilteredDataList()[index];
+                String carId = webhookData['device']['name'].toString();
+                String carStatus = webhookData['name'].toString();
+                String timeStatus = webhookData['detail']?.toString() ?? '';
+                String lat = webhookData['latitude'].toString();
+                String lng = webhookData['longitude'].toString();
+
+                if (carStatus == 'ดับเครื่องยนต์' ||
+                    carStatus == 'Idle duration longer than' ||
+                    carStatus == 'ดับเครื่อง') {
+                  return const SizedBox.shrink();
+                }
 
                 return ListTile(
                   leading: const Icon(
@@ -127,46 +212,26 @@ class _DevicePageState extends State<DevicePage> {
                         'สถานะของรถ : $carStatus $timeStatus',
                         style: const TextStyle(fontFamily: 'BaiJamjuree'),
                       ),
+                      Text(
+                        'ละติจูด $lat ลองจิจูด $lng',
+                        style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                      ),
                     ],
-                  ),
-                );
-              },
-            ),
-            ListView.builder(
-              itemCount: dataList.length,
-              itemBuilder: (BuildContext context, int index) {
-                Map<String, dynamic> webhookData = dataList[index];
-                String carId = webhookData['device']['name'].toString();
-                String carStatus = webhookData['name'].toString();
-                String timeStatus = webhookData['detail']?.toString() ?? '';
-
-                if (carStatus == 'ดับเครื่องยนต์' ||
-                    carStatus == 'Idle duration longer than' ||
-                    carStatus == 'ดับเครื่อง') {
-                  return const SizedBox.shrink();
-                }
-
-                return ListTile(
-                  tileColor: index.isOdd ? oddItemColor : Colors.black26,
-                  title: Text(
-                    'ทะเบียน : $carId',
-                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
-                  ),
-                  subtitle: Text(
-                    'สถานะของรถ : $carStatus $timeStatus',
-                    style: const TextStyle(fontFamily: 'BaiJamjuree'),
                   ),
                 );
               },
             ),
             if (isEngineOff)
               ListView.builder(
-                itemCount: engineOffData.length,
+                itemCount: getEngineOffDataList().length,
                 itemBuilder: (BuildContext context, int index) {
-                  Map<String, dynamic> webhookData = engineOffData[index];
+                  Map<String, dynamic> webhookData =
+                      getEngineOffDataList()[index];
                   String carId = webhookData['device']['name'].toString();
                   String carStatus = webhookData['name'].toString();
                   String timeStatus = webhookData['detail']?.toString() ?? '';
+                  String lat = webhookData['latitude'].toString();
+                  String lng = webhookData['longitude'].toString();
 
                   return ListTile(
                     leading: const Icon(
@@ -183,6 +248,10 @@ class _DevicePageState extends State<DevicePage> {
                       children: [
                         Text(
                           'สถานะของรถ : $carStatus $timeStatus',
+                          style: const TextStyle(fontFamily: 'BaiJamjuree'),
+                        ),
+                        Text(
+                          'ละติจูด $lat ลองจิจูด $lng',
                           style: const TextStyle(fontFamily: 'BaiJamjuree'),
                         ),
                       ],
