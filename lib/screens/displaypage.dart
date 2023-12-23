@@ -82,18 +82,21 @@ class _DisplayPageState extends State<DisplayPage> {
     });
 
     socket.on('wox_webhook', (data) {
-      print('Received wox_webhook data: $data');
-    });
-
-    socket.on('wox_webhook', (data) {
-      print('Received wox_webhook data: $data');
+      //print('Recieved from wox webhook : $data');
       String carId = data['device']['name'];
       double latitude = data['latitude'];
       double longitude = data['longitude'];
       String imei = data['device']['imei'];
       String carStatus = data['name'];
+      late int dir;
+      if (data['course'] is double) {
+        dir = data['course'].toInt();
+      } else {
+        dir = data['course'];
+      }
 
-      _getLocationAndSetMarker(carId, latitude, longitude, imei, carStatus);
+      _getLocationAndSetMarker(
+          carId, latitude, longitude, imei, carStatus, dir);
     });
   }
 
@@ -131,11 +134,11 @@ class _DisplayPageState extends State<DisplayPage> {
         carStatus == 'ดับเครื่องยนต์' ||
         carStatus == 'Stop duration longer than' ||
         carStatus == 'Offline duration longer than') {
-      imagePath = 'assets/image/กระบะบรรทุก STOP.png';
+      imagePath = 'assets/image/กระบะบรรทุก_STOP-removebg-preview.png';
     } else if (carStatus == 'Idle duration longer than') {
-      imagePath = 'assets/image/กระบะบรรทุก IDLE.png';
+      imagePath = 'assets/image/กระบะบรรทุก_IDLE-removebg-preview.png';
     } else {
-      imagePath = 'assets/image/กระบะบรรทุก RUN.png';
+      imagePath = 'assets/image/กระบะบรรทุก_RUN-removebg-preview.png';
     }
 
     ByteData byteData = await rootBundle.load(imagePath);
@@ -145,7 +148,7 @@ class _DisplayPageState extends State<DisplayPage> {
   }
 
   void _getLocationAndSetMarker(String carId, double latitude, double longitude,
-      String imei, String carStatus) async {
+      String imei, String carStatus, int dir) async {
     if (carIdToMarkerMap.containsKey(carId)) {
       //update marker if already have
       Marker existingMarker = carIdToMarkerMap[carId]!;
@@ -162,6 +165,7 @@ class _DisplayPageState extends State<DisplayPage> {
       Marker newMarker = Marker(
         markerId: MarkerId(carId),
         position: LatLng(latitude, longitude),
+        rotation: dir.toDouble(),
         icon: await _getMarkerIcon(carStatus),
         onTap: () {
           _onMarkerTapped(carId, latitude, longitude, imei);
@@ -173,7 +177,7 @@ class _DisplayPageState extends State<DisplayPage> {
     }
 
     setState(() {
-      appBarTitle = 'ละติจูด : $latitude, ลองจิจูด : $longitude';
+      //appBarTitle = 'ละติจูด : $latitude, ลองจิจูด : $longitude';
     });
   }
 
@@ -222,7 +226,7 @@ class _DisplayPageState extends State<DisplayPage> {
                     _buildIconButtonColumn(
                         'รายละเอียด', Icons.car_crash_rounded, () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const InfoPage(),
+                        builder: (context) => InfoPage(list: tappedMarkerData),
                       ));
                     }),
                     _buildIconButtonColumn(
