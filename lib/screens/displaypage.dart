@@ -2,16 +2,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-//import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gps_tracking_app/screens/commandpage.dart';
 import 'package:gps_tracking_app/screens/directionpage.dart';
 import 'package:gps_tracking_app/screens/infopage.dart';
 import 'package:gps_tracking_app/screens/otherpage.dart';
 import 'package:gps_tracking_app/screens/playbackpage.dart';
-import 'package:gps_tracking_app/screens/trackingpage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
-//import 'package:http/http.dart' as http;
 
 class DisplayPage extends StatefulWidget {
   const DisplayPage({super.key});
@@ -40,22 +37,7 @@ class _DisplayPageState extends State<DisplayPage> {
   void initState() {
     super.initState();
     connectAndListen();
-
-    /*
-    locationUpdateTimer =
-        Timer.periodic(const Duration(seconds: 10), (Timer timer) {
-      _sendLocationUpdate();
-    });
-    */
   }
-
-  /*
-  @override
-  void dispose() {
-    locationUpdateTimer.cancel();
-    super.dispose();
-  }
-  */
 
   void connectAndListen() {
     socket = IO.io('https://linebot.wetrustgps.com',
@@ -64,23 +46,15 @@ class _DisplayPageState extends State<DisplayPage> {
     try {
       socket.connect();
     } catch (error) {
-      print('----------------------------------------------------');
-      print('Error connecting to server: $error');
-      print('----------------------------------------------------');
+      print(error);
     }
-    socket.on('connect_error', (error) {
-      print('----------------------------------------------------');
-      print('Connection Error: $error');
-    });
-    socket.on('connect_timeout', (_) {
-      print('----------------------------------------------------');
-      print('Connection Timeout');
-    });
 
     socket.onConnect((_) {
-      print('----------------------------------------------------');
-      print('server connected');
-      print('----------------------------------------------------');
+      print('Connect to socket');
+    });
+
+    socket.onDisconnect((_) {
+      print('Disconnect from socket');
     });
 
     socket.on('wox_webhook', (data) {
@@ -103,7 +77,8 @@ class _DisplayPageState extends State<DisplayPage> {
         dir = data['course'];
       }
 
-      _getLocationAndSetMarker(carId, latitude, longitude, imei, carStatus, dir, timeStatus, deviceId, speed, detail);
+      _getLocationAndSetMarker(carId, latitude, longitude, imei, carStatus, dir,
+          timeStatus, deviceId, speed, detail);
     });
   }
 
@@ -128,6 +103,10 @@ class _DisplayPageState extends State<DisplayPage> {
         mapType: MapType.normal,
         onMapCreated: (GoogleMapController controller) {
           googleMapController = controller;
+        },
+        onTap: (LatLng latLng) {
+          googleMapController.animateCamera(
+              CameraUpdate.newCameraPosition(initialCameraPosition));
         },
       ),
     );
@@ -164,8 +143,7 @@ class _DisplayPageState extends State<DisplayPage> {
       String timeStatus,
       int deviceId,
       String speed,
-      String detail
-      ) async {
+      String detail) async {
     if (carIdToMarkerMap.containsKey(carId)) {
       //update marker if already have
       Marker existingMarker = carIdToMarkerMap[carId]!;
@@ -185,8 +163,8 @@ class _DisplayPageState extends State<DisplayPage> {
         rotation: dir.toDouble(),
         icon: await _getMarkerIcon(carStatus),
         onTap: () {
-          _onMarkerTapped(
-              carId, latitude, longitude, imei, timeStatus, deviceId, speed, carStatus, detail);
+          _onMarkerTapped(carId, latitude, longitude, imei, timeStatus,
+              deviceId, speed, carStatus, detail);
         },
       );
 
@@ -199,8 +177,16 @@ class _DisplayPageState extends State<DisplayPage> {
     });
   }
 
-  void _onMarkerTapped(String carId, double latitude, double longitude,
-      String imei, String timeStatus, int deviceId, String speed, String carStatus, String detail) {
+  void _onMarkerTapped(
+      String carId,
+      double latitude,
+      double longitude,
+      String imei,
+      String timeStatus,
+      int deviceId,
+      String speed,
+      String carStatus,
+      String detail) {
     tappedMarkerData = {
       'carId': carId,
       'latitude': latitude,
@@ -214,7 +200,21 @@ class _DisplayPageState extends State<DisplayPage> {
       //another data
     };
 
+    googleMapController.animateCamera(
+      CameraUpdate.newLatLngZoom(LatLng(latitude, longitude), 16),
+    );
+
     _showBottomSheet(carId, latitude, longitude, imei);
+  }
+
+  void centerCameraOnMarker() {
+    if (tappedMarkerData.isNotEmpty) {
+      double latitude = tappedMarkerData['latitude'];
+      double longitude = tappedMarkerData['longitude'];
+      googleMapController.animateCamera(
+        CameraUpdate.newLatLng(LatLng(latitude, longitude)),
+      );
+    }
   }
 
   void _showBottomSheet(
@@ -254,9 +254,10 @@ class _DisplayPageState extends State<DisplayPage> {
                     }),
                     _buildIconButtonColumn(
                         'การติดตาม', Icons.track_changes_rounded, () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const TrackingPage(),
-                      ));
+                      googleMapController.animateCamera(
+                        CameraUpdate.newLatLng(LatLng(latitude, longitude)),
+                      );
+                      Navigator.pop(context);
                     }),
                     _buildIconButtonColumn(
                         'เล่นย้อนหลัง', Icons.settings_backup_restore_rounded,
