@@ -49,11 +49,13 @@ class _DisplayPageState extends State<DisplayPage> {
     */
   }
 
+  /*
   @override
   void dispose() {
     locationUpdateTimer.cancel();
     super.dispose();
   }
+  */
 
   void connectAndListen() {
     socket = IO.io('https://linebot.wetrustgps.com',
@@ -82,12 +84,18 @@ class _DisplayPageState extends State<DisplayPage> {
     });
 
     socket.on('wox_webhook', (data) {
-      //print('Recieved from wox webhook : $data');
+      print('Recieved from wox webhook : $data');
       String carId = data['device']['name'];
       double latitude = data['latitude'];
       double longitude = data['longitude'];
       String imei = data['device']['imei'];
       String carStatus = data['name'];
+      String timeStatus = data['time'];
+      int deviceId = data['device_id'];
+      String speed = data['speed'];
+      String detail = data['detail']?.toString() ?? '';
+
+      //direction of car that display in map
       late int dir;
       if (data['course'] is double) {
         dir = data['course'].toInt();
@@ -95,8 +103,7 @@ class _DisplayPageState extends State<DisplayPage> {
         dir = data['course'];
       }
 
-      _getLocationAndSetMarker(
-          carId, latitude, longitude, imei, carStatus, dir);
+      _getLocationAndSetMarker(carId, latitude, longitude, imei, carStatus, dir, timeStatus, deviceId, speed, detail);
     });
   }
 
@@ -147,8 +154,18 @@ class _DisplayPageState extends State<DisplayPage> {
     return BitmapDescriptor.fromBytes(byteList);
   }
 
-  void _getLocationAndSetMarker(String carId, double latitude, double longitude,
-      String imei, String carStatus, int dir) async {
+  void _getLocationAndSetMarker(
+      String carId,
+      double latitude,
+      double longitude,
+      String imei,
+      String carStatus,
+      int dir,
+      String timeStatus,
+      int deviceId,
+      String speed,
+      String detail
+      ) async {
     if (carIdToMarkerMap.containsKey(carId)) {
       //update marker if already have
       Marker existingMarker = carIdToMarkerMap[carId]!;
@@ -168,7 +185,8 @@ class _DisplayPageState extends State<DisplayPage> {
         rotation: dir.toDouble(),
         icon: await _getMarkerIcon(carStatus),
         onTap: () {
-          _onMarkerTapped(carId, latitude, longitude, imei);
+          _onMarkerTapped(
+              carId, latitude, longitude, imei, timeStatus, deviceId, speed, carStatus, detail);
         },
       );
 
@@ -181,13 +199,18 @@ class _DisplayPageState extends State<DisplayPage> {
     });
   }
 
-  void _onMarkerTapped(
-      String carId, double latitude, double longitude, String imei) {
+  void _onMarkerTapped(String carId, double latitude, double longitude,
+      String imei, String timeStatus, int deviceId, String speed, String carStatus, String detail) {
     tappedMarkerData = {
       'carId': carId,
       'latitude': latitude,
       'longitude': longitude,
-      'imei': imei
+      'imei': imei,
+      'timeStatus': timeStatus,
+      'deviceId': deviceId,
+      'speed': speed,
+      'carStatus': carStatus,
+      'detail': detail,
       //another data
     };
 
@@ -226,7 +249,7 @@ class _DisplayPageState extends State<DisplayPage> {
                     _buildIconButtonColumn(
                         'รายละเอียด', Icons.car_crash_rounded, () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => InfoPage(list: tappedMarkerData),
+                        builder: (context) => InfoPage(data: tappedMarkerData),
                       ));
                     }),
                     _buildIconButtonColumn(
