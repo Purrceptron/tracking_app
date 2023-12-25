@@ -187,6 +187,7 @@ class _DisplayPageState extends State<DisplayPage> {
       String speed,
       String carStatus,
       String detail) {
+    print('Marker tapped');
     tappedMarkerData = {
       'carId': carId,
       'latitude': latitude,
@@ -201,20 +202,15 @@ class _DisplayPageState extends State<DisplayPage> {
     };
 
     googleMapController.animateCamera(
-      CameraUpdate.newLatLngZoom(LatLng(latitude, longitude), 16),
+      CameraUpdate.newLatLngZoom(
+        LatLng(latitude, longitude),
+        16.0,
+      ),
     );
 
-    _showBottomSheet(carId, latitude, longitude, imei);
-  }
+    print('Camera animated');
 
-  void centerCameraOnMarker() {
-    if (tappedMarkerData.isNotEmpty) {
-      double latitude = tappedMarkerData['latitude'];
-      double longitude = tappedMarkerData['longitude'];
-      googleMapController.animateCamera(
-        CameraUpdate.newLatLng(LatLng(latitude, longitude)),
-      );
-    }
+    _showBottomSheet(carId, latitude, longitude, imei);
   }
 
   void _showBottomSheet(
