@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, library_prefixes
 import 'dart:async';
+import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -19,6 +20,8 @@ class DisplayPage extends StatefulWidget {
 
 class _DisplayPageState extends State<DisplayPage> {
   late GoogleMapController googleMapController;
+  CustomInfoWindowController _customInfoWindowController =
+      CustomInfoWindowController();
   late IO.Socket socket;
   int disconnectCounter = 0;
 
@@ -37,6 +40,12 @@ class _DisplayPageState extends State<DisplayPage> {
   void initState() {
     super.initState();
     connectAndListen();
+  }
+
+  @override
+  void dispose() {
+    _customInfoWindowController.dispose();
+    super.dispose();
   }
 
   void connectAndListen() {
@@ -97,17 +106,32 @@ class _DisplayPageState extends State<DisplayPage> {
         ),
         backgroundColor: Colors.black,
       ),
-      body: GoogleMap(
-        initialCameraPosition: initialCameraPosition,
-        markers: markers,
-        mapType: MapType.normal,
-        onMapCreated: (GoogleMapController controller) {
-          googleMapController = controller;
-        },
-        onTap: (LatLng latLng) {
-          googleMapController.animateCamera(
-              CameraUpdate.newCameraPosition(initialCameraPosition));
-        },
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: initialCameraPosition,
+            markers: markers,
+            mapType: MapType.normal,
+            onMapCreated: (GoogleMapController controller) async {
+              _customInfoWindowController.googleMapController = controller;
+              googleMapController = controller;
+            },
+            onCameraMove: (position) {
+              _customInfoWindowController.onCameraMove!();
+            },
+            onTap: (LatLng latLng) {
+              _customInfoWindowController.hideInfoWindow!();
+              googleMapController.animateCamera(
+                  CameraUpdate.newCameraPosition(initialCameraPosition));
+            },
+          ),
+          CustomInfoWindow(
+            controller: _customInfoWindowController,
+            height: 15,
+            width: 150,
+            offset: 25,
+          ),
+        ],
       ),
     );
   }
@@ -165,6 +189,31 @@ class _DisplayPageState extends State<DisplayPage> {
         onTap: () {
           _onMarkerTapped(carId, latitude, longitude, imei, timeStatus,
               deviceId, speed, carStatus, detail);
+          _customInfoWindowController.addInfoWindow!(
+              Container(
+                height: 15,
+                width: 125,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(2.0))),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(
+                        '$carId ($speed kph)',
+                        style: const TextStyle(
+                          fontFamily: 'BaiJamjuree',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              LatLng(latitude, longitude));
         },
       );
 
@@ -202,10 +251,7 @@ class _DisplayPageState extends State<DisplayPage> {
     };
 
     googleMapController.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(latitude, longitude),
-        16.0,
-      ),
+      CameraUpdate.newLatLng(LatLng(latitude, longitude)),
     );
 
     print('Camera animated');
