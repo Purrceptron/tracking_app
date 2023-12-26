@@ -20,7 +20,7 @@ class DisplayPage extends StatefulWidget {
 
 class _DisplayPageState extends State<DisplayPage> {
   late GoogleMapController googleMapController;
-  CustomInfoWindowController _customInfoWindowController =
+  final CustomInfoWindowController _customInfoWindowController =
       CustomInfoWindowController();
   late IO.Socket socket;
   int disconnectCounter = 0;
