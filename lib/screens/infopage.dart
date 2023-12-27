@@ -14,7 +14,7 @@ class InfoPage extends StatelessWidget {
     //Default font
     const commonTextStyle = TextStyle(
       fontFamily: 'BaiJamjuree',
-      fontSize: 16.0,
+      fontSize: 13.0,
       fontWeight: FontWeight.w500,
       color: Colors.black,
     );
@@ -102,10 +102,13 @@ class InfoPage extends StatelessWidget {
           ),
           const Divider(height: 0),
           ListTile(
-            title: const Text('ตำแหน่ง', style: commonTextStyle),
+            title: const Text(
+              'ตำแหน่ง',
+              style: TextStyle(fontSize: 13.0, fontFamily: 'BaiJamjuree'),
+            ),
             trailing: Text(
               '${data['latitude']}, ${data['longitude']}',
-              style: commonTextStyle,
+              style: const TextStyle(fontSize: 13.0, fontFamily: 'BaiJamjuree'),
             ),
           ),
           const Divider(height: 0),

@@ -114,7 +114,11 @@ class _DisplayPageState extends State<DisplayPage> {
           GoogleMap(
             initialCameraPosition: initialCameraPosition,
             markers: markers,
+<<<<<<< HEAD
             mapType: _currentMapType,
+=======
+            mapType: MapType.normal,
+>>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
             onMapCreated: (GoogleMapController controller) async {
               _customInfoWindowController.googleMapController = controller;
               googleMapController = controller;
@@ -130,6 +134,7 @@ class _DisplayPageState extends State<DisplayPage> {
           ),
           CustomInfoWindow(
             controller: _customInfoWindowController,
+<<<<<<< HEAD
             height: 80,
             width: 150,
             offset: 25,
@@ -165,6 +170,12 @@ class _DisplayPageState extends State<DisplayPage> {
               ),
             ]),
           ),
+=======
+            height: 15,
+            width: 150,
+            offset: 25,
+          ),
+>>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
         ],
       ),
     );
@@ -250,16 +261,25 @@ class _DisplayPageState extends State<DisplayPage> {
               deviceId, speed, carStatus, detail);
           _customInfoWindowController.addInfoWindow!(
               Container(
+<<<<<<< HEAD
                 padding: const EdgeInsets.all(10.0),
                 height: 80,
                 width: 150,
                 decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.all(Radius.circular(8.0))),
+=======
+                height: 15,
+                width: 125,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(2.0))),
+>>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+<<<<<<< HEAD
                     Text(
                       carId,
                       style: const TextStyle(
@@ -282,6 +302,16 @@ class _DisplayPageState extends State<DisplayPage> {
                         fontFamily: 'BaiJamjuree',
                         fontWeight: FontWeight.w500,
                         fontSize: 10.0,
+=======
+                    Center(
+                      child: Text(
+                        '$carId ($speed kph)',
+                        style: const TextStyle(
+                          fontFamily: 'BaiJamjuree',
+                          fontWeight: FontWeight.w500,
+                          fontSize: 10.0,
+                        ),
+>>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
                       ),
                     ),
                   ],
@@ -327,7 +357,11 @@ class _DisplayPageState extends State<DisplayPage> {
     };
 
     googleMapController.animateCamera(
+<<<<<<< HEAD
       CameraUpdate.newLatLngZoom(LatLng(latitude, longitude), 16.0),
+=======
+      CameraUpdate.newLatLng(LatLng(latitude, longitude)),
+>>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
     );
 
     print('Camera animated');
