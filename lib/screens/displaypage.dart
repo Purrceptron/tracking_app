@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, library_prefixes
 import 'dart:async';
+import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -9,6 +10,7 @@ import 'package:gps_tracking_app/screens/infopage.dart';
 import 'package:gps_tracking_app/screens/otherpage.dart';
 import 'package:gps_tracking_app/screens/playbackpage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:label_marker/label_marker.dart';
 
 class DisplayPage extends StatefulWidget {
   const DisplayPage({super.key});
@@ -19,6 +21,8 @@ class DisplayPage extends StatefulWidget {
 
 class _DisplayPageState extends State<DisplayPage> {
   late GoogleMapController googleMapController;
+  final CustomInfoWindowController _customInfoWindowController =
+      CustomInfoWindowController();
   late IO.Socket socket;
   int disconnectCounter = 0;
 
@@ -32,11 +36,19 @@ class _DisplayPageState extends State<DisplayPage> {
   String appBarTitle = 'Display';
   late Timer locationUpdateTimer;
   Map<String, dynamic> tappedMarkerData = {};
+  MapType _currentMapType = MapType.normal;
+  bool isLabelMarkerVisible = false;
 
   @override
   void initState() {
     super.initState();
     connectAndListen();
+  }
+
+  @override
+  void dispose() {
+    _customInfoWindowController.dispose();
+    super.dispose();
   }
 
   void connectAndListen() {
@@ -97,21 +109,68 @@ class _DisplayPageState extends State<DisplayPage> {
         ),
         backgroundColor: Colors.black,
       ),
-      body: GoogleMap(
-        initialCameraPosition: initialCameraPosition,
-        markers: markers,
-        mapType: MapType.normal,
-        onMapCreated: (GoogleMapController controller) {
-          googleMapController = controller;
-        },
-        onTap: (LatLng latLng) {
-          googleMapController.animateCamera(
-              CameraUpdate.newCameraPosition(initialCameraPosition));
-        },
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: initialCameraPosition,
+            markers: markers,
+            mapType: _currentMapType,
+            onMapCreated: (GoogleMapController controller) async {
+              _customInfoWindowController.googleMapController = controller;
+              googleMapController = controller;
+            },
+            onCameraMove: (position) {
+              _customInfoWindowController.onCameraMove!();
+            },
+            onTap: (LatLng latLng) {
+              _customInfoWindowController.hideInfoWindow!();
+              googleMapController.animateCamera(
+                  CameraUpdate.newCameraPosition(initialCameraPosition));
+            },
+          ),
+          CustomInfoWindow(
+            controller: _customInfoWindowController,
+            height: 80,
+            width: 150,
+            offset: 25,
+          ),
+          Container(
+            padding: const EdgeInsets.only(top: 24, right: 12),
+            alignment: Alignment.topRight,
+            child: Column(children: [
+              FloatingActionButton(
+                backgroundColor: Colors.white,
+                onPressed: () {
+                  setState(() {
+                    isLabelMarkerVisible = !isLabelMarkerVisible;
+                  });
+                },
+                child: Icon(
+                  isLabelMarkerVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8.0),
+              FloatingActionButton(
+                backgroundColor: Colors.white,
+                onPressed: () {
+                  _changeMapType();
+                },
+                child: const Icon(
+                  Icons.map_sharp,
+                  color: Colors.black,
+                ),
+              ),
+            ]),
+          ),
+        ],
       ),
     );
   }
 
+  //load image marker
   Future<BitmapDescriptor> _getMarkerIcon(String carStatus) async {
     String imagePath;
 
@@ -131,6 +190,27 @@ class _DisplayPageState extends State<DisplayPage> {
     Uint8List byteList = byteData.buffer.asUint8List();
 
     return BitmapDescriptor.fromBytes(byteList);
+  }
+
+  void _changeMapType() {
+    setState(() {
+      _currentMapType = _currentMapType == MapType.normal
+          ? MapType.hybrid
+          : MapType.normal;
+    });
+  }
+
+  void _createLabelMarker(
+      String carId, double latitude, double longitude, String speed) {
+    markers.addLabelMarker(LabelMarker(
+      label: '$carId ($speed kph)',
+      markerId: MarkerId('$carId-label'),
+      position: LatLng(latitude, longitude),
+      backgroundColor: Colors.white,
+      visible: isLabelMarkerVisible,
+      textStyle: const TextStyle(
+          fontFamily: 'BaiJamjuree', color: Colors.black, fontSize: 28.0),
+    ));
   }
 
   void _getLocationAndSetMarker(
@@ -155,6 +235,8 @@ class _DisplayPageState extends State<DisplayPage> {
 
       markers.add(updatedMarker);
       carIdToMarkerMap[carId] = updatedMarker;
+
+      _createLabelMarker(carId, latitude, longitude, speed);
     } else {
       //create new marker based on lat long from webhook
       Marker newMarker = Marker(
@@ -162,14 +244,57 @@ class _DisplayPageState extends State<DisplayPage> {
         position: LatLng(latitude, longitude),
         rotation: dir.toDouble(),
         icon: await _getMarkerIcon(carStatus),
+        anchor: const Offset(0.5, 1.0),
         onTap: () {
           _onMarkerTapped(carId, latitude, longitude, imei, timeStatus,
               deviceId, speed, carStatus, detail);
+          _customInfoWindowController.addInfoWindow!(
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                height: 80,
+                width: 150,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(8.0))),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      carId,
+                      style: const TextStyle(
+                        fontFamily: 'BaiJamjuree',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10.0,
+                      ),
+                    ),
+                    Text(
+                      'เวลา : $timeStatus',
+                      style: const TextStyle(
+                        fontFamily: 'BaiJamjuree',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10.0,
+                      ),
+                    ),
+                    Text(
+                      'สถานะ : $carStatus $detail',
+                      style: const TextStyle(
+                        fontFamily: 'BaiJamjuree',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              LatLng(latitude, longitude));
         },
       );
 
       markers.add(newMarker);
       carIdToMarkerMap[carId] = newMarker;
+
+      _createLabelMarker(carId, latitude, longitude, speed);
     }
 
     setState(() {
@@ -202,10 +327,7 @@ class _DisplayPageState extends State<DisplayPage> {
     };
 
     googleMapController.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        LatLng(latitude, longitude),
-        16.0,
-      ),
+      CameraUpdate.newLatLngZoom(LatLng(latitude, longitude), 16.0),
     );
 
     print('Camera animated');
@@ -311,82 +433,4 @@ class _DisplayPageState extends State<DisplayPage> {
       ],
     );
   }
-
-  /*
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-
-    if (!serviceEnabled) {
-      return Future.error('Location services are disabled');
-    }
-
-    permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-
-      if (permission == LocationPermission.denied) {
-        return Future.error("Location permission denied");
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permissions are permanently denied');
-    }
-
-    Position position = await Geolocator.getCurrentPosition();
-    socket.emit('location', {
-      'latitude': position.latitude,
-      'longitude': position.longitude,
-    });
-
-    /*
-    try {
-      final response = await http.post(
-        Uri.parse('https://linebot.wetrustgps.com/api/test_socket'),
-        body: {
-          'latitude': position.latitude.toString(),
-          'longitude': position.longitude.toString(),
-        },
-      );
-
-      if (response.statusCode == 200) {
-        print('API call successful: ${response.body}');
-      } else {
-        print('API call failed with status code: ${response.statusCode}');
-      }
-    } catch (error) {
-      print('Error making API call: $error');
-    }
-    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
-    */
-
-    return position;
-  }
-  */
-
-  /*
-  Future<BitmapDescriptor> _getMarkerIcon() async {
-    String imagePath = 'assets/image/car_online2.png';
-    ByteData byteData = await rootBundle.load(imagePath);
-    Uint8List byteList = byteData.buffer.asUint8List();
-
-    return BitmapDescriptor.fromBytes(byteList);
-  }
-  */
-
-  /*
-  void _sendLocationUpdate() async {
-    try {
-      Position position = await _determinePosition();
-      print(
-          'Sending location update - Latitude: ${position.latitude}, Longitude: ${position.longitude}');
-    } catch (e) {
-      print('Error sending location update: $e');
-    }
-  }
-  */
 }

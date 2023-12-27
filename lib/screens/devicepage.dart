@@ -12,6 +12,10 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> {
   late IO.Socket socket;
   List<Map<String, dynamic>> dataList = [];
+  late int allCount;
+  late int onlineCount;
+  late int offlineCount;
+  
 
   @override
   void initState() {
@@ -73,8 +77,15 @@ class _DevicePageState extends State<DevicePage> {
         .toList();
   }
 
+  void updateCounts() {
+    allCount = dataList.length;
+    onlineCount = getFilteredDataList().length;
+    offlineCount = getEngineOffDataList().length;
+  }
+
   @override
   Widget build(BuildContext context) {
+    updateCounts();
     const int tabsCount = 3;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
@@ -100,8 +111,8 @@ class _DevicePageState extends State<DevicePage> {
           },
           backgroundColor: Colors.black,
           scrolledUnderElevation: 4.0,
-          bottom: const TabBar(
-            labelStyle: TextStyle(
+          bottom: TabBar(
+            labelStyle: const TextStyle(
               fontFamily: 'BaiJamjuree',
               fontWeight: FontWeight.w600,
             ),
@@ -110,16 +121,16 @@ class _DevicePageState extends State<DevicePage> {
             indicatorColor: Colors.white70,
             tabs: <Widget>[
               Tab(
-                icon: Icon(Icons.gps_fixed_rounded),
-                text: 'ทั้งหมด',
+                icon: const Icon(Icons.gps_fixed_rounded),
+                text: 'ทั้งหมด[$allCount]',
               ),
               Tab(
-                icon: Icon(Icons.gps_not_fixed_rounded),
-                text: 'ออนไลน์',
+                icon: const Icon(Icons.gps_not_fixed_rounded),
+                text: 'ออนไลน์[$onlineCount]',
               ),
               Tab(
-                icon: Icon(Icons.gps_off_rounded),
-                text: 'ออฟไลน์',
+                icon: const Icon(Icons.gps_off_rounded),
+                text: 'ออฟไลน์[$offlineCount]',
               ),
             ],
           ),
