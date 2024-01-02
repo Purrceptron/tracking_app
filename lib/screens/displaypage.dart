@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+//import 'package:google_maps_cluster_manager/google_maps_cluster_manager.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:gps_tracking_app/screens/commandpage.dart';
-import 'package:gps_tracking_app/screens/directionpage.dart';
 import 'package:gps_tracking_app/screens/infopage.dart';
 import 'package:gps_tracking_app/screens/otherpage.dart';
 import 'package:gps_tracking_app/screens/playbackpage.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:label_marker/label_marker.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class DisplayPage extends StatefulWidget {
   const DisplayPage({super.key});
@@ -31,10 +32,15 @@ class _DisplayPageState extends State<DisplayPage> {
     zoom: 6,
   );
 
+  //image marker
   Set<Marker> markers = {};
   Map<String, Marker> carIdToMarkerMap = {};
+
   String appBarTitle = 'Display';
+
+  //unused
   late Timer locationUpdateTimer;
+
   Map<String, dynamic> tappedMarkerData = {};
   MapType _currentMapType = MapType.normal;
   bool isLabelMarkerVisible = false;
@@ -114,11 +120,7 @@ class _DisplayPageState extends State<DisplayPage> {
           GoogleMap(
             initialCameraPosition: initialCameraPosition,
             markers: markers,
-<<<<<<< HEAD
             mapType: _currentMapType,
-=======
-            mapType: MapType.normal,
->>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
             onMapCreated: (GoogleMapController controller) async {
               _customInfoWindowController.googleMapController = controller;
               googleMapController = controller;
@@ -134,8 +136,7 @@ class _DisplayPageState extends State<DisplayPage> {
           ),
           CustomInfoWindow(
             controller: _customInfoWindowController,
-<<<<<<< HEAD
-            height: 80,
+            height: 90,
             width: 150,
             offset: 25,
           ),
@@ -170,12 +171,6 @@ class _DisplayPageState extends State<DisplayPage> {
               ),
             ]),
           ),
-=======
-            height: 15,
-            width: 150,
-            offset: 25,
-          ),
->>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
         ],
       ),
     );
@@ -205,9 +200,8 @@ class _DisplayPageState extends State<DisplayPage> {
 
   void _changeMapType() {
     setState(() {
-      _currentMapType = _currentMapType == MapType.normal
-          ? MapType.hybrid
-          : MapType.normal;
+      _currentMapType =
+          _currentMapType == MapType.normal ? MapType.hybrid : MapType.normal;
     });
   }
 
@@ -250,6 +244,7 @@ class _DisplayPageState extends State<DisplayPage> {
       _createLabelMarker(carId, latitude, longitude, speed);
     } else {
       //create new marker based on lat long from webhook
+
       Marker newMarker = Marker(
         markerId: MarkerId(carId),
         position: LatLng(latitude, longitude),
@@ -258,28 +253,19 @@ class _DisplayPageState extends State<DisplayPage> {
         anchor: const Offset(0.5, 1.0),
         onTap: () {
           _onMarkerTapped(carId, latitude, longitude, imei, timeStatus,
-              deviceId, speed, carStatus, detail);
+              deviceId, speed, carStatus, detail, dir);
           _customInfoWindowController.addInfoWindow!(
               Container(
-<<<<<<< HEAD
                 padding: const EdgeInsets.all(10.0),
-                height: 80,
+                height: 90,
                 width: 150,
                 decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.all(Radius.circular(8.0))),
-=======
-                height: 15,
-                width: 125,
-                decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(Radius.circular(2.0))),
->>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-<<<<<<< HEAD
                     Text(
                       carId,
                       style: const TextStyle(
@@ -302,16 +288,6 @@ class _DisplayPageState extends State<DisplayPage> {
                         fontFamily: 'BaiJamjuree',
                         fontWeight: FontWeight.w500,
                         fontSize: 10.0,
-=======
-                    Center(
-                      child: Text(
-                        '$carId ($speed kph)',
-                        style: const TextStyle(
-                          fontFamily: 'BaiJamjuree',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 10.0,
-                        ),
->>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
                       ),
                     ),
                   ],
@@ -341,7 +317,8 @@ class _DisplayPageState extends State<DisplayPage> {
       int deviceId,
       String speed,
       String carStatus,
-      String detail) {
+      String detail,
+      int dir) {
     print('Marker tapped');
     tappedMarkerData = {
       'carId': carId,
@@ -353,15 +330,11 @@ class _DisplayPageState extends State<DisplayPage> {
       'speed': speed,
       'carStatus': carStatus,
       'detail': detail,
-      //another data
+      'dir': dir,
     };
 
     googleMapController.animateCamera(
-<<<<<<< HEAD
       CameraUpdate.newLatLngZoom(LatLng(latitude, longitude), 16.0),
-=======
-      CameraUpdate.newLatLng(LatLng(latitude, longitude)),
->>>>>>> 4d16a939581bbb7019ce5dff6ea07ab6fe60b6a6
     );
 
     print('Camera animated');
@@ -415,7 +388,8 @@ class _DisplayPageState extends State<DisplayPage> {
                         'เล่นย้อนหลัง', Icons.settings_backup_restore_rounded,
                         () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const PlaybackPage(),
+                        builder: (context) =>
+                            PlaybackPage(data: tappedMarkerData),
                       ));
                     }),
                     _buildIconButtonColumn(
@@ -426,14 +400,12 @@ class _DisplayPageState extends State<DisplayPage> {
                     }),
                     _buildIconButtonColumn(
                         'ระบบนำทาง', Icons.directions_car_filled_rounded, () {
-                      Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const DirectionPage(),
-                      ));
+                      _launchGoogleMapsNavigation(latitude, longitude);
                     }),
                     _buildIconButtonColumn('อื่น ๆ', Icons.streetview_rounded,
                         () {
                       Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => const OtherPage(),
+                        builder: (context) => OtherPage(data: tappedMarkerData),
                       ));
                     }),
                   ],
@@ -466,5 +438,16 @@ class _DisplayPageState extends State<DisplayPage> {
         ),
       ],
     );
+  }
+
+  Future<void> _launchGoogleMapsNavigation(
+      double destinationLatitude, double destinationLongitude) async {
+    String googleMapsUrl =
+        'https://www.google.com/maps/dir/?api=1&destination=$destinationLatitude,$destinationLongitude';
+    if (await canLaunchUrlString(googleMapsUrl)) {
+      await launchUrlString(googleMapsUrl);
+    } else {
+      print('Could not launch Google Maps');
+    }
   }
 }
