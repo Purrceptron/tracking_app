@@ -45,6 +45,10 @@ class _DisplayPageState extends State<DisplayPage> {
   MapType _currentMapType = MapType.normal;
   bool isLabelMarkerVisible = false;
 
+  List<Map<String, dynamic>> socketDataList = [];
+
+  Timer? debounceTimer;
+
   @override
   void initState() {
     super.initState();
@@ -97,6 +101,23 @@ class _DisplayPageState extends State<DisplayPage> {
 
       _getLocationAndSetMarker(carId, latitude, longitude, imei, carStatus, dir,
           timeStatus, deviceId, speed, detail);
+
+      socketDataList.add({
+        'carId': carId,
+        'latitude': latitude,
+        'longitude': longitude,
+        'speed': speed,
+        'imei': imei,
+        'carStatus': carStatus,
+        'timeStatus': timeStatus,
+        'deviceId': deviceId,
+        'detail': detail,
+      });
+
+      // Check if label markers need to be displayed
+      if (isLabelMarkerVisible) {
+        _createLabelMarkersFromList();
+      }
     });
   }
 
@@ -150,6 +171,13 @@ class _DisplayPageState extends State<DisplayPage> {
                   setState(() {
                     isLabelMarkerVisible = !isLabelMarkerVisible;
                   });
+                  if (isLabelMarkerVisible) {
+                    _createLabelMarkersFromList();
+                  } else {
+                    // If visibility is turned off, clear existing label markers
+                    markers.removeWhere(
+                        (marker) => marker.markerId.value.endsWith('-label'));
+                  }
                 },
                 child: Icon(
                   isLabelMarkerVisible
@@ -205,10 +233,22 @@ class _DisplayPageState extends State<DisplayPage> {
     });
   }
 
+  void _createLabelMarkersFromList() {
+    for (var data in socketDataList) {
+      _createLabelMarker(
+        data['carId'],
+        data['latitude'],
+        data['longitude'],
+        data['speed'],
+      );
+    }
+  }
+
   void _createLabelMarker(
       String carId, double latitude, double longitude, String speed) {
+    String formattedSpeed = speed.split('.').first;
     markers.addLabelMarker(LabelMarker(
-      label: '$carId ($speed kph)',
+      label: '$carId ($formattedSpeed kph)',
       markerId: MarkerId('$carId-label'),
       position: LatLng(latitude, longitude),
       backgroundColor: Colors.white,
@@ -241,7 +281,7 @@ class _DisplayPageState extends State<DisplayPage> {
       markers.add(updatedMarker);
       carIdToMarkerMap[carId] = updatedMarker;
 
-      _createLabelMarker(carId, latitude, longitude, speed);
+      //_createLabelMarker(carId, latitude, longitude, speed);
     } else {
       //create new marker based on lat long from webhook
 
@@ -300,7 +340,7 @@ class _DisplayPageState extends State<DisplayPage> {
       markers.add(newMarker);
       carIdToMarkerMap[carId] = newMarker;
 
-      _createLabelMarker(carId, latitude, longitude, speed);
+      //_createLabelMarker(carId, latitude, longitude, speed);
     }
 
     setState(() {
